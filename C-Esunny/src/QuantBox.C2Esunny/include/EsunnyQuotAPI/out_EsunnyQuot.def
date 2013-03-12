@@ -1,0 +1,26 @@
+
+Dump of file EsunnyQuot.dll
+
+File Type: DLL
+
+  Section contains the following exports for EsunnyQuot.dll
+
+    00000000 characteristics
+    4E681A8D time date stamp Thu Sep 08 09:29:49 2011
+        0.00 version
+           1 ordinal base
+           2 number of functions
+           2 number of names
+
+    ordinal hint RVA      name
+
+          1    0 00001080 CreateEsunnyQuotClient
+          2    1 00001110 DelEsunnyQuotClient
+
+  Summary
+
+        5000 .data
+        4000 .rdata
+        2000 .reloc
+        1000 .rsrc
+       24000 .text

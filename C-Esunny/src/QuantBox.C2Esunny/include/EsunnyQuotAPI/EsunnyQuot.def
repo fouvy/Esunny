@@ -1,0 +1,4 @@
+LIBRARY	"EsunnyQuot"
+EXPORTS
+	CreateEsunnyQuotClient
+	DelEsunnyQuotClient

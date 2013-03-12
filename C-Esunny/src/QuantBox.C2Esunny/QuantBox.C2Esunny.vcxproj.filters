@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="QuantBox.C2Esunny.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="QuotApi.cpp" />
+    <ClCompile Include="EsunnyMsgQueue.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Lock.h" />
+    <ClInclude Include="include\LockFreeQ.h" />
+    <ClInclude Include="QuantBox.C2Esunny.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="include\EsunnyQuotAPI\EsunnyQuot.h">
+      <Filter>EsunnyQuotAPI</Filter>
+    </ClInclude>
+    <ClInclude Include="QuotApi.h" />
+    <ClInclude Include="EsunnyMsgQueue.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="QuantBox.C2Esunny.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ReadMe.txt" />
+    <None Include="include\EsunnyQuotAPI\EsunnyQuot.def">
+      <Filter>lib</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="EsunnyQuotAPI">
+      <UniqueIdentifier>{9d3c845f-e93a-4a35-8dba-18998ca9cdb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{4feb97f4-61a8-4609-a20e-0cb79dd01872}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="include\EsunnyQuotAPI\EsunnyQuot.lib">
+      <Filter>lib</Filter>
+    </Library>
+  </ItemGroup>
+</Project>

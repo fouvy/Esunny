@@ -1,0 +1,2 @@
+dumpbin EsunnyQuot.dll /EXPORTS /OUT:out_EsunnyQuot.def
+lib /DEF:EsunnyQuot.def
