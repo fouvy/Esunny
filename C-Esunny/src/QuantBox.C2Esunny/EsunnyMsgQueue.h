@@ -89,8 +89,8 @@ private:
 	}
 	void Output_OnDisconnect(SMsgItem* pItem)
 	{
-		if(m_fnOnConnect)
-			(*m_fnOnConnect)(pItem->pApi,pItem->err,pItem->buffer,(ConnectionStatus)(int)pItem->pBuffer);
+		if(m_fnOnDisconnect)
+			(*m_fnOnDisconnect)(pItem->pApi,pItem->err,pItem->buffer,(ConnectionStatus)(int)pItem->pBuffer);
 	}
 	void Output_OnRspHistoryQuot(SMsgItem* pItem)
 	{

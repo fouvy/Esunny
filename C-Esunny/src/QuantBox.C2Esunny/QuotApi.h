@@ -30,8 +30,10 @@ public:
 	int RequestTrace(const char *market,const char *stk,const char *date);
 
 private:
-	////订阅行情
-	//void Subscribe(const set<string>& instrumentIDs);
+	friend DWORD WINAPI ConnectThread(LPVOID lpParam);
+	void ConnectInThread();
+	void StopThread();
+
 	//登录请求
 	void Login();
 
@@ -44,6 +46,10 @@ private:
 	int __cdecl OnRspMarketInfo(struct MarketInfo *pMarketInfo,int bLast);
 
 private:
+	int							m_nSleep;
+	volatile bool				m_bRunning;
+	HANDLE						m_hThread;
+
 	ConnectionStatus			m_status;				//连接状态
 	
 	set<string>					m_setInstrumentIDs;		//正在订阅的合约

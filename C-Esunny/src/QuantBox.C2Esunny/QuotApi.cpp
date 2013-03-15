@@ -9,6 +9,9 @@ CQuotApi::CQuotApi(void)
 {
 	m_msgQueue = NULL;
 	m_status = E_uninit;
+
+	m_hThread = NULL;
+	m_bRunning = false;
 }
 
 CQuotApi::~CQuotApi(void)
@@ -37,33 +40,74 @@ void CQuotApi::Connect(
 	m_status = E_inited;
 	if(m_msgQueue)
 		m_msgQueue->Input_OnConnect(this,0,"",m_status);
-	
-	if (m_pApi)
+
+	if (NULL == m_hThread)
 	{
-		int i = 0;
-		do
-		{
-			++i;
-			char buf[1024] = {0};
-			sprintf(buf,"正在尝试第 %d 次连接......",i);
+		m_bRunning = true;
+		m_hThread = CreateThread(NULL,0,ConnectThread,this,0,NULL); 
+	}
+}
 
-			m_status = E_connecting;
-			if(m_msgQueue)
-				m_msgQueue->Input_OnConnect(this,NULL,buf,m_status);
+DWORD WINAPI ConnectThread(LPVOID lpParam)
+{
+	CQuotApi* pQuot = reinterpret_cast<CQuotApi *>(lpParam);
+	if (pQuot)
+		pQuot->ConnectInThread();
+	return 0;
+}
 
-			int nRet = m_pApi->Connect(m_szIP.c_str(),m_nPort);
-			if(0 == nRet)
-			{
-				Login();
-				return;
-			}
-			
-		} while (i<5);
-		
+void CQuotApi::ConnectInThread()
+{
+	int iRet = -1;
+	int i = 0;
+
+	m_nSleep = 1;
+
+	while (m_bRunning)
+	{
+		++i;
+		char buf[1024] = {0};
+		sprintf(buf,"正在尝试第 %d 次连接......",i);
 		m_status = E_connecting;
 		if(m_msgQueue)
-			m_msgQueue->Input_OnDisconnect(this,NULL,"连接多次失败",m_status);
+			m_msgQueue->Input_OnConnect(this,NULL,buf,m_status);
+		
+		if (m_pApi)
+		{
+			iRet = m_pApi->Connect(m_szIP.c_str(),m_nPort);
+		}
+		else
+		{
+			break;
+		}
+
+		if (0 == iRet)
+		{
+			Login();
+			break;
+		}
+		else
+		{
+			//失败，按4的幂进行延时，但不超过1s
+			m_nSleep *= 4;
+			m_nSleep %= (1024*8-1);
+			Sleep(m_nSleep);
+		}
 	}
+
+	//清理线程
+	CloseHandle(m_hThread);
+	m_hThread = NULL;
+	m_bRunning = false;
+}
+
+void CQuotApi::StopThread()
+{
+	//停止发送线程
+	m_bRunning = false;
+	WaitForSingleObject(m_hThread,INFINITE);
+	CloseHandle(m_hThread);
+	m_hThread = NULL;
 }
 
 void CQuotApi::Login()
@@ -79,6 +123,8 @@ void CQuotApi::Login()
 
 void CQuotApi::Disconnect()
 {
+	StopThread();
+
 	m_status = E_unconnected;
 	if(m_pApi)
 	{
@@ -118,6 +164,12 @@ int CQuotApi::OnRspLogin(int err,const char *errtext)
 
 int CQuotApi::OnChannelLost(int err,const char *errtext)
 {
+	if (NULL == m_hThread)
+	{
+		m_bRunning = true;
+		m_hThread = CreateThread(NULL,0,ConnectThread,this,0,NULL); 
+	}
+
 	if(m_msgQueue)
 		m_msgQueue->Input_OnDisconnect(this,err,errtext,E_unconnected);
 	return 0;
@@ -150,80 +202,3 @@ int CQuotApi::OnRspMarketInfo(struct MarketInfo *pMarketInfo,int bLast)
 		m_msgQueue->Input_OnRspMarketInfo(this,pMarketInfo,bLast);
 	return 0;
 }
-
-//void CQuotApi::OnFrontConnected()
-//{
-//	m_status =  E_connected;
-//	if(m_msgQueue)
-//		m_msgQueue->Input_OnConnect(this,NULL,m_status);
-//
-//	//连接成功后自动请求登录
-//	ReqUserLogin();
-//}
-//
-//void CMdUserApi::OnFrontDisconnected(int nReason)
-//{
-//	m_status = E_unconnected;
-//	CThostFtdcRspInfoField RspInfo;
-//	//连接失败返回的信息是拼接而成，主要是为了统一输出
-//	RspInfo.ErrorID = nReason;
-//	GetOnFrontDisconnectedMsg(&RspInfo);
-//	
-//	if(m_msgQueue)
-//		m_msgQueue->Input_OnDisconnect(this,&RspInfo,m_status);
-//}
-//
-//void CMdUserApi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-//{
-//	if (!IsErrorRspInfo(pRspInfo)
-//		&&pRspUserLogin)
-//	{
-//		m_status = E_logined;
-//		if(m_msgQueue)
-//			m_msgQueue->Input_OnConnect(this,pRspUserLogin,m_status);
-//		
-//		//有可能断线了，本处是断线重连后重新订阅
-//		set<string> mapOld = m_setInstrumentIDs;//记下上次订阅的合约
-//		//Unsubscribe(mapOld);//由于已经断线了，没有必要再取消订阅
-//		Subscribe(mapOld);//订阅
-//	}
-//	else
-//	{
-//		m_status = E_authed;
-//		if(m_msgQueue)
-//			m_msgQueue->Input_OnDisconnect(this,pRspInfo,E_logining);
-//	}
-//}
-//
-//void CMdUserApi::OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-//{
-//	if(m_msgQueue)
-//		m_msgQueue->Input_OnRspError(this,pRspInfo,nRequestID,bIsLast);
-//}
-//
-//void CMdUserApi::OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-//{
-//	//在模拟平台可能这个函数不会触发，所以要自己维护一张已经订阅的合约列表
-//	if(!IsErrorRspInfo(pRspInfo,nRequestID,bIsLast)
-//		&&pSpecificInstrument)
-//	{
-//		m_setInstrumentIDs.insert(pSpecificInstrument->InstrumentID);
-//	}
-//}
-//
-//void CMdUserApi::OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
-//{
-//	//模拟平台可能这个函数不会触发
-//	if(!IsErrorRspInfo(pRspInfo,nRequestID,bIsLast)
-//		&&pSpecificInstrument)
-//	{
-//		m_setInstrumentIDs.erase(pSpecificInstrument->InstrumentID);
-//	}
-//}
-//
-////行情回调，得保证此函数尽快返回
-//void CMdUserApi::OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData)
-//{
-//	if(m_msgQueue)
-//		m_msgQueue->Input_OnRtnDepthMarketData(this,pDepthMarketData);
-//}
