@@ -9,6 +9,7 @@ tmp/
 *.tmp
 *.bak
 *.swp
+*.exp
 *~.nib
 local.properties
 .classpath

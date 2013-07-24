@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantBox.CSharp2Esunny", "QuantBox.CSharp2Esunny\QuantBox.CSharp2Esunny.csproj", "{0266F737-2271-4791-8FB0-5EA9A8AC0F7A}"
 EndProject
 Global
